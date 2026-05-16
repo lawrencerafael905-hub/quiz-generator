@@ -1,0 +1,13 @@
+{
+    "name": "neust/quiz-generator",
+    "description": "NEUST BSIT 3rd Year Case Study — Quiz Generator",
+    "require": {
+        "php": ">=8.1",
+        "pusher/pusher-php-server": "^7.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    }
+}
