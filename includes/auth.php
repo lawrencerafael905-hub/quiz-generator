@@ -107,3 +107,13 @@ function requireRole(string ...$roles): void {
         die('Access denied.');
     }
 }
+
+function isAdmin(): bool {
+    $user = currentUser();
+    return $user && $user['role'] === 'admin';
+}
+
+function isTeacher(): bool {
+    $user = currentUser();
+    return $user && in_array($user['role'], ['teacher', 'admin'], true);
+}

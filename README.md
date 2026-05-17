@@ -57,7 +57,8 @@ Visit: `http://casestudy/quiz-generator/`
 | Hostname `casestudy` | ✅ `DB_HOST=casestudy` in `.env` |
 | Port 3306–3310 | ✅ `DB_PORT` in `.env` |
 | WebSockets (Pusher) | ✅ Real-time submission broadcast |
-| CRUD | ✅ Quizzes, Questions, Attempts, Responses |
+| CRUD | ✅ Full CRUD — see matrix below |
+| Admin panel | ✅ User management + audit log viewer |
 | Stored Procedures | ✅ `sp_submit_attempt`, `sp_get_quiz_results`, `sp_get_leaderboard` |
 | Trigger Functions | ✅ `trg_quiz_after_insert/update/delete`, `trg_attempt_after_update` |
 | `.env` file | ✅ All credentials centralized |
@@ -73,9 +74,46 @@ Visit: `http://casestudy/quiz-generator/`
 ## Roles
 | Role | Permissions |
 |---|---|
-| `admin` | All teacher permissions + admin panel |
-| `teacher` | Create/edit/delete/publish quizzes, view results |
-| `student` | Take published quizzes, view own scores |
+| `admin` | All teacher permissions + user CRUD + audit log |
+| `teacher` | Create/edit/delete/publish quizzes, manage questions, view results |
+| `student` | Take published quizzes, view attempt history |
+
+Default admin login (from seed): **admin** / **Admin@1234**
+
+---
+
+## CRUD Matrix
+
+| Entity | Create | Read | Update | Delete |
+|--------|--------|------|--------|--------|
+| Users | Register, Admin panel | Login, Admin list | Admin panel | Admin panel |
+| Quizzes | `quiz-create.php` | Dashboard | `quiz-create.php` | Dashboard → API |
+| Questions | `api/question.php` | `quiz-create.php` | `api/question.php` + modal | `api/question.php` |
+| Attempts | `quiz-take.php` | `my-attempts.php`, `results.php` | Graded on submit | — |
+| Audit log | DB triggers | `admin/audit-log.php` | — | — |
+
+---
+
+## Key URLs
+
+| Page | URL |
+|------|-----|
+| Dashboard | `/pages/dashboard.php` |
+| My Attempts | `/pages/my-attempts.php` |
+| Quiz Editor | `/pages/quiz-create.php` |
+| Admin — Users | `/pages/admin/users.php` |
+| Admin — Audit Log | `/pages/admin/audit-log.php` |
+
+---
+
+## Testing Checklist
+
+1. **Teacher:** Create quiz → add questions → edit question (text/choices) → delete question → delete quiz from dashboard
+2. **Teacher:** Cannot change question type after a student has submitted a response to that question
+3. **Admin:** Create/edit/delete users; cannot delete self or the last admin
+4. **Admin:** Audit log shows quiz and submission events after actions
+5. **Student:** `my-attempts.php` lists scores; dashboard retake still works
+6. **Security:** CSRF rejected on API calls without token; output escaped with `e()`
 
 ---
 
@@ -106,10 +144,14 @@ quiz-generator/
 ├── includes/
 │   ├── auth.php          ← Bcrypt login/register/session
 │   ├── csrf.php          ← CSRF token generate + verify
-│   └── sanitize.php      ← XSS + input helpers
+│   ├── sanitize.php      ← XSS + input helpers
+│   ├── layout.php        ← Shared header/footer/nav
+│   ├── nav.php           ← Role-aware navigation
+│   └── flash.php         ← Session flash messages
 ├── api/
 │   ├── quiz.php
-│   ├── question.php
+│   ├── question.php      ← add / update / delete
+│   ├── user.php          ← admin user CRUD
 │   ├── submit.php        ← grades + broadcasts via Pusher
 │   └── logout.php
 ├── pages/
@@ -118,8 +160,13 @@ quiz-generator/
 │   ├── dashboard.php
 │   ├── quiz-create.php
 │   ├── quiz-take.php
-│   └── results.php
+│   ├── my-attempts.php
+│   ├── results.php
+│   └── admin/
+│       ├── users.php
+│       ├── user-form.php
+│       └── audit-log.php
 └── assets/
-    ├── css/style.css
+    ├── css/app.css       ← Shared application styles
     └── js/realtime.js    ← Pusher JS client
 ```
