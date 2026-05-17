@@ -5,9 +5,12 @@ require_once __DIR__ . '/includes/auth.php';
 
 startSecureSession();
 
+$baseUrl = rtrim(getenv('APP_URL'), '/');
+
+
 if (isLoggedIn()) {
-    header('Location: /pages/dashboard.php');
+    header('Location: ' . $baseUrl . '/pages/dashboard.php');
 } else {
-    header('Location: /pages/login.php');
+    header('Location: ' . $baseUrl . '/pages/login.php');
 }
 exit;
