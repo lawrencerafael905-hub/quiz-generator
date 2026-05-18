@@ -11,6 +11,6 @@ $baseUrl = rtrim(getenv('APP_URL'), '/');
 if (isLoggedIn()) {
     header('Location: ' . $baseUrl . '/pages/dashboard.php');
 } else {
-    header('Location: ' . $baseUrl . '/pages/login.php');
+    header('Location: ' . $baseUrl . '/landing.php');
 }
 exit;
