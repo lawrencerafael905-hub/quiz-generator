@@ -253,6 +253,14 @@ renderHeader($quiz ? 'Edit Quiz' : 'New Quiz', 'quiz-create', true, $extraCss);
       </div>
     </div>
 
+    <div id="short-answer-builder" style="display:none; margin-top:18px;">
+      <label style="margin-bottom:10px; display:flex; gap:8px; align-items:center; font-size:13px; color:var(--sub);">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></svg>
+        Correct Answer for Short Answer
+      </label>
+      <input type="text" id="q-short-answer" placeholder="Type the expected answer" style="width:100%; padding:11px 14px; border-radius:var(--radius); border:1.5px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text); outline:none;" />
+    </div>
+
     <div style="margin-top:18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <button id="add-question-btn" class="btn btn-success" style="padding:10px 20px;font-size:14px;font-weight:600">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -294,6 +302,10 @@ renderHeader($quiz ? 'Edit Quiz' : 'New Quiz', 'quiz-create', true, $extraCss);
       <label>Choices</label>
       <div id="edit-choices-container"></div>
     </div>
+    <div id="edit-short-answer-builder" style="display:none; margin-top:16px;">
+      <label style="display:block; margin-bottom:8px; color:var(--sub); font-size:13px;">Correct Answer</label>
+      <input type="text" id="edit-q-short-answer" placeholder="Type the expected answer" style="width:100%; padding:11px 14px; border-radius:var(--radius); border:1.5px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text); outline:none;" />
+    </div>
     <div id="edit-feedback" style="display:none;margin-top:10px;font-size:13px"></div>
     <div class="modal-footer">
       <button type="button" class="btn" id="edit-cancel">Cancel</button>
@@ -313,9 +325,11 @@ document.getElementById('q-type')?.addEventListener('change', function () {
   const cb  = document.getElementById('choices-builder');
   const cc  = document.getElementById('choices-container');
   const lbl = cb.querySelector('label');
+  const sa  = document.getElementById('short-answer-builder');
   switch (this.value) {
     case 'true_false':
       cb.style.display = 'block';
+      sa.style.display = 'none';
       lbl.style.display = 'flex';
       cc.innerHTML = ['True','False'].map((v,i) => `
         <div class="choice-row">
@@ -325,9 +339,11 @@ document.getElementById('q-type')?.addEventListener('change', function () {
       break;
     case 'short_answer':
       cb.style.display = 'none';
+      sa.style.display = 'block';
       break;
     default:
       cb.style.display = 'block';
+      sa.style.display = 'none';
       lbl.style.display = 'flex';
       cc.innerHTML = ['A','B','C','D'].map(l => `
         <div class="choice-row">
@@ -346,22 +362,24 @@ document.getElementById('add-question-btn')?.addEventListener('click', async () 
   if (!text) { showFeedback('Question text is required.', false); return; }
 
   let choices = [];
-  if (type !== 'short_answer') {
-    if (type === 'true_false') {
-      const sel = document.querySelector('input[name="tf"]:checked');
-      choices = [
-        { text: 'True',  correct: sel?.value === '1' ? 1 : 0 },
-        { text: 'False', correct: sel?.value === '0' ? 1 : 0 },
-      ];
-    } else {
-      document.querySelectorAll('#choices-container .choice-row').forEach(row => {
-        const t = row.querySelector('.choice-text')?.value.trim();
-        const c = row.querySelector('.choice-correct')?.checked ? 1 : 0;
-        if (t) choices.push({ text: t, correct: c });
-      });
-      if (!choices.some(c => c.correct)) {
-        showFeedback('Please mark at least one correct choice.', false); return;
-      }
+  if (type === 'short_answer') {
+    const answer = document.getElementById('q-short-answer').value.trim();
+    if (!answer) { showFeedback('Please enter the correct answer for short answer questions.', false); return; }
+    choices = [{ text: answer, correct: 1 }];
+  } else if (type === 'true_false') {
+    const sel = document.querySelector('input[name="tf"]:checked');
+    choices = [
+      { text: 'True',  correct: sel?.value === '1' ? 1 : 0 },
+      { text: 'False', correct: sel?.value === '0' ? 1 : 0 },
+    ];
+  } else {
+    document.querySelectorAll('#choices-container .choice-row').forEach(row => {
+      const t = row.querySelector('.choice-text')?.value.trim();
+      const c = row.querySelector('.choice-correct')?.checked ? 1 : 0;
+      if (t) choices.push({ text: t, correct: c });
+    });
+    if (!choices.some(c => c.correct)) {
+      showFeedback('Please mark at least one correct choice.', false); return;
     }
   }
 
@@ -423,7 +441,15 @@ function showFeedback(msg, ok) {
 function buildEditChoices(type, choices) {
   const cb = document.getElementById('edit-choices-builder');
   const cc = document.getElementById('edit-choices-container');
-  if (type === 'short_answer') { cb.style.display = 'none'; return; }
+  const sa = document.getElementById('edit-short-answer-builder');
+  const saInput = document.getElementById('edit-q-short-answer');
+  if (type === 'short_answer') {
+    cb.style.display = 'none';
+    sa.style.display = 'block';
+    saInput.value = choices[0]?.text || '';
+    return;
+  }
+  sa.style.display = 'none';
   cb.style.display = 'block';
   if (type === 'true_false') {
     const trueCorrect = choices.find(c => c.text === 'True')?.correct;
@@ -477,23 +503,25 @@ document.getElementById('edit-save')?.addEventListener('click', async () => {
   const fb   = document.getElementById('edit-feedback');
   if (!text) { fb.textContent = 'Question text is required.'; fb.style.display = 'block'; fb.style.color = '#ff8a96'; return; }
   let choices = [];
-  if (type !== 'short_answer') {
-    if (type === 'true_false') {
-      const sel = document.querySelector('input[name="edit_tf"]:checked');
-      choices = [
-        { text: 'True', correct: sel?.value === '1' ? 1 : 0 },
-        { text: 'False', correct: sel?.value === '0' ? 1 : 0 },
-      ];
-    } else {
-      document.querySelectorAll('#edit-choices-container .choice-row').forEach(row => {
-        const t = row.querySelector('.choice-text')?.value.trim();
-        const c = row.querySelector('.choice-correct')?.checked ? 1 : 0;
-        if (t) choices.push({ text: t, correct: c });
-      });
-      if (!choices.some(c => c.correct)) {
-        fb.textContent = 'Mark at least one correct choice.'; fb.style.display = 'block'; fb.style.color = '#ff8a96'; return;
+  if (type === 'short_answer') {
+    const answer = document.getElementById('edit-q-short-answer').value.trim();
+    if (!answer) { fb.textContent = 'Please enter the correct answer for short answer questions.'; fb.style.display = 'block'; fb.style.color = '#ff8a96'; return; }
+    choices = [{ text: answer, correct: 1 }];
+  } else if (type === 'true_false') {
+    const sel = document.querySelector('input[name="edit_tf"]:checked');
+    choices = [
+      { text: 'True', correct: sel?.value === '1' ? 1 : 0 },
+      { text: 'False', correct: sel?.value === '0' ? 1 : 0 },
+    ];
+  } else {
+    document.querySelectorAll('#edit-choices-container .choice-row').forEach(row => {
+      const t = row.querySelector('.choice-text')?.value.trim();
+      const c = row.querySelector('.choice-correct')?.checked ? 1 : 0;
+      if (t) choices.push({ text: t, correct: c });
+    });
+    if (!choices.some(c => c.correct)) {
+      fb.textContent = 'Mark at least one correct choice.'; fb.style.display = 'block'; fb.style.color = '#ff8a96'; return;
       }
-    }
   }
   const btn = document.getElementById('edit-save');
   btn.disabled = true;

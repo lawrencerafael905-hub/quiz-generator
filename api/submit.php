@@ -80,6 +80,19 @@ foreach ($answers as $questionId => $value) {
     }
 }
 
+// Grade short answer responses by exact match to the stored correct choice text
+$db = Database::getInstance();
+db_query(
+    'UPDATE responses r
+     JOIN choices c ON r.question_id = c.question_id AND c.is_correct = 1
+     SET r.is_correct = CASE
+         WHEN LOWER(TRIM(r.text_answer)) = LOWER(TRIM(c.choice_text)) THEN 1
+         ELSE 0
+     END
+     WHERE r.attempt_id = ? AND r.text_answer IS NOT NULL',
+    [$attemptId]
+);
+
 // Call stored procedure to grade and mark submitted
 $stmt = $pdo->prepare('CALL sp_submit_attempt(?, @score, @total)');
 $stmt->execute([$attemptId]);

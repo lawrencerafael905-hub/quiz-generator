@@ -32,9 +32,6 @@ function assertQuestionOwnership(int $questionId, int $userId): array {
 }
 
 function insertChoices(int $qId, array $choices, string $type): void {
-    if ($type === 'short_answer') {
-        return;
-    }
     foreach ($choices as $c) {
         $cText    = sanitizeString($c['text'] ?? '', 500);
         $cCorrect = ($c['correct'] ?? 0) ? 1 : 0;
@@ -57,6 +54,12 @@ if ($action === 'add') {
     $choices = $input['choices'] ?? [];
 
     if (!$quizId || !$text) jsonError('quiz_id and text are required.');
+    if ($type === 'short_answer') {
+        if (empty($choices) || !trim($choices[0]['text'] ?? '')) {
+            jsonError('Short answer questions require a correct answer.');
+        }
+        $choices[0]['correct'] = 1;
+    }
 
     $quiz = db_query(
         'SELECT id FROM quizzes WHERE id=? AND created_by=?',
@@ -90,6 +93,12 @@ if ($action === 'update') {
     $choices = $input['choices'] ?? [];
 
     if (!$id || !$text) jsonError('id and text are required.');
+    if ($type === 'short_answer') {
+        if (empty($choices) || !trim($choices[0]['text'] ?? '')) {
+            jsonError('Short answer questions require a correct answer.');
+        }
+        $choices[0]['correct'] = 1;
+    }
 
     $existing = assertQuestionOwnership($id, $user['id']);
 
