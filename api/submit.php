@@ -96,7 +96,7 @@ db_query(
 // Call stored procedure to grade and mark submitted
 $stmt = $pdo->prepare('CALL sp_submit_attempt(?, @score, @total)');
 $stmt->execute([$attemptId]);
-$pdo->closeCursor();
+$stmt->closeCursor();
 
 $result = $pdo->query('SELECT @score AS score, @total AS total')->fetch();
 $score  = (float)$result['score'];
