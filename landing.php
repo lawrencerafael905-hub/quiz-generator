@@ -71,6 +71,27 @@ $baseUrl = rtrim(getenv('APP_URL'), '/');
             mask-image: radial-gradient(ellipse 80% 80% at 50% 30%, black 30%, transparent 100%);
         }
 
+        /* Floating quiz chars */
+        .floaters { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+        .floater {
+            position: absolute;
+            font-family: 'Syne', sans-serif; font-weight: 800;
+            color: rgba(255,255,255,0.035);
+            animation: floatUp linear infinite;
+            user-select: none;
+        }
+        @keyframes floatUp {
+            from { transform: translateY(105vh) rotate(-12deg); opacity: 0; }
+            8%   { opacity: 1; }
+            92%  { opacity: 1; }
+            to   { transform: translateY(-8vh) rotate(12deg); opacity: 0; }
+        }
+
+        @keyframes pulse {
+            0%,100% { opacity:1; }
+            50%      { opacity:.35; }
+        }
+
         /* Navbar */
         .navbar {
             position: sticky; top: 0; z-index: 100;
@@ -494,6 +515,7 @@ $baseUrl = rtrim(getenv('APP_URL'), '/');
         <div class="orb orb-3"></div>
     </div>
     <div class="grid"></div>
+    <div class="floaters" id="floaters"></div>
 
     <!-- Navigation -->
     <nav class="navbar">
@@ -648,5 +670,24 @@ $baseUrl = rtrim(getenv('APP_URL'), '/');
             </div>
         </div>
     </footer>
+
+    <script>
+        // Floating chars
+        const chars = ['?','?','?','A','B','C','D','✓','✗','?'];
+        const fc = document.getElementById('floaters');
+        function spawn() {
+            const el = document.createElement('div');
+            el.className = 'floater';
+            el.textContent = chars[Math.floor(Math.random() * chars.length)];
+            el.style.cssText = `left:${Math.random()*100}vw;font-size:${Math.random()*90+36}px`;
+            const d = Math.random() * 16 + 10;
+            el.style.animationDuration = d + 's';
+            el.style.animationDelay    = (Math.random() * -d) + 's';
+            fc.appendChild(el);
+            setTimeout(() => el.remove(), (d + 2) * 1000);
+        }
+        for (let i = 0; i < 16; i++) spawn();
+        setInterval(spawn, 2200);
+    </script>
 </body>
 </html>
