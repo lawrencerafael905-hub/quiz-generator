@@ -434,7 +434,87 @@ $baseUrl = rtrim(getenv('APP_URL'), '/');
             margin-bottom: 32px;
             line-height: 1.6;
         }
+        /* About Section */
+        .about-section {
+            position: relative; z-index: 1;
+            padding: 100px 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
 
+        .about-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 48px;
+        }
+
+        .about-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            display: flex;
+            gap: 18px;
+            transition: all .3s;
+            backdrop-filter: blur(16px);
+        }
+
+        .about-card:hover {
+            border-color: var(--border-hi);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+        }
+
+        .about-icon {
+            font-size: 32px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            background: var(--blue-dim);
+            border: 1px solid rgba(91,142,255,0.25);
+            border-radius: 12px;
+        }
+
+        .about-card:nth-child(2) .about-icon {
+            background: var(--accent-dim);
+            border-color: rgba(245,200,66,0.25);
+        }
+
+        .about-card:nth-child(3) .about-icon {
+            background: var(--green-dim);
+            border-color: rgba(62,207,142,0.25);
+        }
+
+        .about-card:nth-child(4) .about-icon {
+            background: rgba(255,94,114,0.1);
+            border-color: rgba(255,94,114,0.25);
+        }
+
+        .about-card:nth-child(5) .about-icon {
+            background: var(--orange-dim);
+            border-color: rgba(255,154,60,0.25);
+        }
+
+        .about-card:nth-child(6) .about-icon {
+            background: rgba(139,47,255,0.12);
+            border-color: rgba(139,47,255,0.25);
+        }
+
+        .about-text h3 {
+            font-family: 'Syne', sans-serif;
+            font-size: 18px; font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .about-text p {
+            font-size: 14px;
+            color: var(--sub);
+            line-height: 1.65;
+        }
         /* Footer */
         .footer {
             position: relative; z-index: 1;
@@ -498,6 +578,25 @@ $baseUrl = rtrim(getenv('APP_URL'), '/');
 
             .cta-card h2 {
                 font-size: 24px;
+            }
+
+            .about-card {
+                padding: 20px;
+                gap: 14px;
+            }
+
+            .about-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 24px;
+            }
+
+            .about-text h3 {
+                font-size: 16px;
+            }
+
+            .about-text p {
+                font-size: 13px;
             }
 
             .footer-content {
@@ -653,6 +752,64 @@ $baseUrl = rtrim(getenv('APP_URL'), '/');
             <div class="hero-actions">
                 <a href="pages/register.php" class="btn btn-primary btn-lg">Create Your Account</a>
                 <a href="pages/login.php" class="btn btn-secondary btn-lg">Sign In</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section" id="about">
+        <div class="section-header">
+            <h2>About Quiz Generator</h2>
+            <p>Empowering educators and trainers with modern assessment technology</p>
+        </div>
+
+        <div class="about-content">
+            <div class="about-card">
+                <div class="about-icon">🎯</div>
+                <div class="about-text">
+                    <h3>Our Mission</h3>
+                    <p>We believe assessment should be simple, efficient, and accessible to everyone. Quiz Generator democratizes quiz creation, allowing educators and trainers to focus on what matters most — delivering quality education.</p>
+                </div>
+            </div>
+
+            <div class="about-card">
+                <div class="about-icon">💡</div>
+                <div class="about-text">
+                    <h3>Our Vision</h3>
+                    <p>To revolutionize the way educational institutions and training organizations create, deliver, and evaluate assessments through intuitive, modern technology.</p>
+                </div>
+            </div>
+
+            <div class="about-card">
+                <div class="about-icon">🚀</div>
+                <div class="about-text">
+                    <h3>Built for Everyone</h3>
+                    <p>Whether you're a classroom teacher, corporate trainer, or assessment professional, Quiz Generator provides the tools you need to create engaging quizzes and track meaningful results.</p>
+                </div>
+            </div>
+
+            <div class="about-card">
+                <div class="about-icon">🔒</div>
+                <div class="about-text">
+                    <h3>Security & Privacy First</h3>
+                    <p>We prioritize the security and privacy of your data. All quiz responses and student information are protected with industry-standard encryption and security protocols.</p>
+                </div>
+            </div>
+
+            <div class="about-card">
+                <div class="about-icon">🌍</div>
+                <div class="about-text">
+                    <h3>Global Community</h3>
+                    <p>Join educators from around the world who are using Quiz Generator to improve learning outcomes and create better assessment experiences.</p>
+                </div>
+            </div>
+
+            <div class="about-card">
+                <div class="about-icon">📚</div>
+                <div class="about-text">
+                    <h3>Continuous Innovation</h3>
+                    <p>We're constantly evolving our platform with new features and improvements based on user feedback. Your success is our success.</p>
+                </div>
             </div>
         </div>
     </section>
