@@ -639,7 +639,7 @@ $baseUrl = rtrim(getenv('APP_URL'), '/');
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-text">
-                &copy; 2024 Quiz Generator. All rights reserved.
+                &copy; <?= date('Y') ?> Quiz Generator. All rights reserved.
             </div>
             <div class="footer-links">
                 <a href="#" class="footer-link">Privacy</a>
