@@ -552,6 +552,9 @@ document.querySelectorAll('textarea.short-answer').forEach(t => {
   });
 });
 
+// ── Submit guard (prevents double-submission from timer + button) ──
+let isSubmitting = false;
+
 // ── Timer ──
 if (TIME_LIMIT > 0) {
   let remaining = TIME_LIMIT;
@@ -563,7 +566,12 @@ if (TIME_LIMIT > 0) {
     const s = String(remaining % 60).padStart(2,'0');
     display.textContent = `${m}:${s}`;
     if (remaining <= 30) timerEl.classList.add('urgent');
-    if (remaining <= 0) { clearInterval(tick); submitQuiz(); }
+    if (remaining <= 0) {
+      clearInterval(tick); // stop timer BEFORE submit to prevent re-entry
+      const btn = document.getElementById('submit-btn');
+      if (btn) btn.disabled = true;
+      submitQuiz();
+    }
   }, 1000);
   // Init display
   const m0 = String(Math.floor(TIME_LIMIT / 60)).padStart(2,'0');
@@ -573,6 +581,7 @@ if (TIME_LIMIT > 0) {
 
 // ── Submit ──
 document.getElementById('submit-btn').addEventListener('click', () => {
+  if (isSubmitting) return; // guard: already in flight
   const unanswered = TOTAL_Q - answered.size;
   const msg = unanswered > 0
     ? `You have ${unanswered} unanswered question${unanswered > 1 ? 's' : ''}. Submit anyway?`
@@ -582,9 +591,14 @@ document.getElementById('submit-btn').addEventListener('click', () => {
 });
 
 async function submitQuiz() {
+  if (isSubmitting) return; // guard: prevent concurrent calls
+  isSubmitting = true;
+
   const btn = document.getElementById('submit-btn');
-  btn.disabled = true;
-  btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin .7s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Submitting…`;
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin .7s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Submitting…`;
+  }
 
   const form    = document.getElementById('quiz-form');
   const data    = new FormData(form);
@@ -631,8 +645,11 @@ async function submitQuiz() {
     }, 320);
   } else {
     alert(json.error || 'Submission failed.');
-    btn.disabled = false;
-    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Submit Quiz`;
+    isSubmitting = false; // allow retry on genuine errors
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Submit Quiz`;
+    }
   }
 }
 

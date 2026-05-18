@@ -29,12 +29,21 @@ if (!hash_equals(csrfToken(), $csrfIn)) jsonError('CSRF token mismatch.', 419);
 $attemptId = sanitizeInt($input['attempt_id'] ?? null);
 if (!$attemptId) jsonError('Missing attempt_id.');
 
-// Confirm attempt belongs to this user and is not yet submitted
+// Confirm attempt belongs to this user
 $attempt = db_query(
-    'SELECT * FROM attempts WHERE id=? AND user_id=? AND submitted_at IS NULL',
+    'SELECT * FROM attempts WHERE id=? AND user_id=?',
     [$attemptId, $user['id']]
 )->fetch();
-if (!$attempt) jsonError('Attempt not found or already submitted.', 404);
+if (!$attempt) jsonError('Attempt not found.', 404);
+
+// If already submitted, return the stored result gracefully (idempotent response)
+if ($attempt['submitted_at'] !== null) {
+    jsonSuccess([
+        'score'        => (float)$attempt['score'],
+        'total_points' => (int)$attempt['total_points'],
+        'already_submitted' => true,
+    ]);
+}
 
 $pdo = Database::getInstance();
 
