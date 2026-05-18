@@ -608,44 +608,53 @@ async function submitQuiz() {
     if (m) payload.answers[m[1]] = v;
   }
 
-  const res  = await fetch('../api/submit.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF },
-    body: JSON.stringify(payload)
-  });
-  const json = await res.json();
+  try {
+    const res  = await fetch('../api/submit.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF },
+      body: JSON.stringify(payload)
+    });
 
-  if (json.success) {
-    document.getElementById('quiz-form').style.opacity = '0';
-    document.getElementById('quiz-form').style.transition = 'opacity .3s';
-    setTimeout(() => {
-      document.getElementById('quiz-form').style.display = 'none';
-      const rs = document.getElementById('result-section');
-      rs.style.display = 'block';
+    if (!res.ok) {
+      throw new Error(`Server returned ${res.status}`);
+    }
 
-      // Populate result card
-      const pct = json.score;
-      document.getElementById('score-pct').textContent = pct + '%';
-      document.getElementById('score-pts').textContent = `${json.total_points} total point${json.total_points != 1 ? 's' : ''}`;
+    const json = await res.json();
 
-      // Score ring fill
-      const ring = document.getElementById('score-ring');
-      const color = pct >= 75 ? '#3ecf8e' : pct >= 50 ? '#f5c842' : '#ff5e72';
-      ring.style.background = `conic-gradient(${color} ${pct * 3.6}deg, rgba(255,255,255,0.05) 0deg)`;
-      ring.style.boxShadow  = `0 0 0 3px rgba(255,255,255,0.06), inset 0 0 0 16px #080b14, 0 0 40px ${color}33`;
+    if (json.success) {
+      document.getElementById('quiz-form').style.opacity = '0';
+      document.getElementById('quiz-form').style.transition = 'opacity .3s';
+      setTimeout(() => {
+        document.getElementById('quiz-form').style.display = 'none';
+        const rs = document.getElementById('result-section');
+        rs.style.display = 'block';
 
-      // Emoji & title by score
-      const emoji = pct >= 90 ? '🏆' : pct >= 75 ? '🎉' : pct >= 50 ? '👍' : '📚';
-      const title = pct >= 90 ? 'Excellent work!' : pct >= 75 ? 'Great job!' : pct >= 50 ? 'Not bad!' : 'Keep practicing!';
-      document.getElementById('result-emoji').textContent = emoji;
-      document.getElementById('result-title').textContent = title;
-      document.getElementById('result-sub').textContent   = `You scored ${pct}% on this quiz`;
+        // Populate result card
+        const pct = json.score;
+        document.getElementById('score-pct').textContent = pct + '%';
+        document.getElementById('score-pts').textContent = `${json.total_points} total point${json.total_points != 1 ? 's' : ''}`;
 
-      initStudentRealtime(QUIZ_ID, PUSHER_KEY, PUSHER_CLUS);
-    }, 320);
-  } else {
-    alert(json.error || 'Submission failed.');
-    isSubmitting = false; // allow retry on genuine errors
+        // Score ring fill
+        const ring = document.getElementById('score-ring');
+        const color = pct >= 75 ? '#3ecf8e' : pct >= 50 ? '#f5c842' : '#ff5e72';
+        ring.style.background = `conic-gradient(${color} ${pct * 3.6}deg, rgba(255,255,255,0.05) 0deg)`;
+        ring.style.boxShadow  = `0 0 0 3px rgba(255,255,255,0.06), inset 0 0 0 16px #080b14, 0 0 40px ${color}33`;
+
+        // Emoji & title by score
+        const emoji = pct >= 90 ? '🏆' : pct >= 75 ? '🎉' : pct >= 50 ? '👍' : '📚';
+        const title = pct >= 90 ? 'Excellent work!' : pct >= 75 ? 'Great job!' : pct >= 50 ? 'Not bad!' : 'Keep practicing!';
+        document.getElementById('result-emoji').textContent = emoji;
+        document.getElementById('result-title').textContent = title;
+        document.getElementById('result-sub').textContent   = `You scored ${pct}% on this quiz`;
+
+        initStudentRealtime(QUIZ_ID, PUSHER_KEY, PUSHER_CLUS);
+      }, 320);
+    } else {
+      throw new Error(json.error || 'Submission failed.');
+    }
+  } catch (error) {
+    alert(error.message);
+    isSubmitting = false;
     if (btn) {
       btn.disabled = false;
       btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Submit Quiz`;
